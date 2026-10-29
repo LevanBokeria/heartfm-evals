@@ -1,0 +1,8 @@
+# Blockers encountered during the novelty review
+
+| # | What | Effect | Workaround used |
+| --- | --- | --- | --- |
+| B1 | `https://www.nature.com/articles/s43856-026-01636-0` answers with a 303 redirect to `idp.nature.com/authorize` (cookie/bot check). Following it with curl was refused by the session's permission policy as bot-check circumvention. | Could not open the online article or its **Supplementary Information** (Suppl. Tables 1–14). | Used the committed PDF `documents/papers/2026 Fu et al CineMA Nature.pdf` (main text only, 13 pages). |
+| B2 | CineMA **Supplementary Table 8** (per-dataset disease-classification AUROC) is not in the committed PDF. | Cannot settle refresher issue N5: two different "published CineMA" baselines are in circulation (97.98 / 77.41 / 77.20 % vs 0.992 / 0.810 / 0.801). | Both are quoted side by side; see 03_positioning.md for what the literature agents found. |
+| B3 | ~~`sam2-classification` not in the clone~~ — resolved: fetched read-only from origin. Note it is at `6905cb6` (2026-05-06), not the `a77c030` the refreshers cite, so `a77c030` was probably never pushed. `cinema_finetune_paper_auc.csv` is **not** on the pushed branch. | The provenance of the 97.98 / 77.41 / 77.20 % baseline cannot be traced from origin. | Treated as unverified. |
+| B4 | `scikit-learn` is not installed and the brief forbids installing the project. | Could not use sklearn for OVO AUROC / MCC. | Re-implemented Mann–Whitney AUROC (OVR, Hand–Till OVO) and multi-class MCC in numpy; OVR reproduces the committed JSON values to 4 d.p. Script kept in the session scratchpad, not committed. |
