@@ -86,6 +86,9 @@ initialisation within DINO; CMRVision varies the data within DINO. No study has 
 - **Month 3: label-efficiency curves and write-up.**
   - Compare frozen vs lightly fine-tuned (LoRA) models on a subset of tasks, to test whether
     cardiac pretraining matters most when labels are scarce.
+  - *Stretch goal:* full fine-tuning of the same models, as an upper bound on what freezing
+    costs. Fair tuning of each model (learning rate, layer decay, augmentation) could take
+    considerable time, so it comes last.
   - Use UK Biobank's large set of cardiac measurements (e.g. LV volumes for ~81k participants)
     for label-efficiency curves at scale.
   - Keep disease classification as a secondary task; the public test sets are small (as few as
