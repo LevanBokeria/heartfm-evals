@@ -6,17 +6,17 @@ Supporting detail: [REPORT.md](REPORT.md), [03_positioning.md](03_positioning.md
 
 ## Background and work to date:
 
-**Cardiac foundation models.** In the domain of cardiovascular modelling, foundation models have been increasingly trained on multi-modal imaging datasets (such as MRI scans, CT scans, PET scans, etc) and used for various clinically relevant downstream tasks including tissue segmentation in MRI images, disease classification from MRI images, and others. One such recent foundation model [CineMA](link) (cite) was pre-trained on UK BioBank cardiac MRI images and was shown to have SOTA performance on various tasks on various open datasets after full fine-tuning. 
+**Cardiac foundation models.** In the domain of cardiovascular modelling, foundation models have been increasingly trained on multi-modal imaging datasets (such as MRI scans, CT scans, PET scans, etc.) and used for various clinically relevant downstream tasks including tissue segmentation in MRI images, disease classification from MRI images, and others. One such recent foundation model, CineMA ([Fu et al., *Commun Med* 2026](https://doi.org/10.1038/s43856-026-01636-0); [code](https://github.com/mathpluscode/CineMA)), was pretrained on UK Biobank cardiac MRI images and was shown to have SOTA performance on various tasks on various open datasets after full fine-tuning. 
 
 **What has been done in HeartFM project.** This project asks whether the frozen features of a general-purpose vision foundation model already capture enough cardiac anatomy and pathology for such clinical tasks, or whether a cardiac-specific model such as CineMA is needed. Tasks are _segmentation_ of various anatomical structures of the heart and patient-level _disease classification_.
 
-We built a benchmark that freezes a pretrained natural-image or cardiac backbone and trains task heads on top. For segmentation task, we use three decoders: a linear probe, a 2D conv decoder and a UNETR. Classification task uses either logistic-regression or linear heads on pooled features. The
+We built a benchmark that freezes a pretrained natural-image or cardiac backbone and trains task heads on top. For the segmentation task, we use three decoders: a linear probe, a 2D conv decoder and a UNETR ([Hatamizadeh et al., 2022](https://arxiv.org/abs/2103.10504)). The classification task uses either logistic-regression or linear heads on pooled features. The
 backbones are:
 - **CineMA**, a masked-autoencoder (MAE) model pretrained on ~75k UK Biobank cine MRI studies;
-- **DINOv3** (sizes: S/B/L), distilled from a model trained on natural images;
-- **SAMv1** (sizes: B/L/H), trained for natural-image segmentation.
+- **DINOv3** ([Siméoni et al., 2025](https://arxiv.org/abs/2508.10104); sizes: S/B/L), distilled from a model trained on natural images;
+- **SAMv1** ([Kirillov et al., 2023](https://arxiv.org/abs/2304.02643); sizes: B/L/H), trained for natural-image segmentation.
 
-Following CineMA, he have been evaluating on three publically available datasets: ACDC, M&Ms and M&Ms-2.
+Following CineMA, we have been evaluating on three publicly available datasets: ACDC (Bernard et al., *IEEE TMI* 2018), M&Ms (Campello et al., *IEEE TMI* 2021) and M&Ms-2 (Martín-Isla et al., *IEEE JBHI* 2023).
 
 Current WIP results:
 - **Classification:** frozen CineMA shows no consistent advantage over frozen DINOv3. It leads on
@@ -28,15 +28,15 @@ Current WIP results:
 
 These results are from a single unseeded run. They need further work and replication with multiple seeded runs.
 
-**Position in the literature.** The study so far addresses a real but a narrow gap, and is incremental. A review of ~28 foundation-model studies found one published frozen comparison on these datasets: CMR-CLIP (Nakashima et al., *Nat Commun* 2026), which covers ACDC disease classification only, against CLIP-family baselines. No study covers M&Ms or M&Ms-2, frozen segmentation, or a cardiac MAE against DINOv3 or SAM. Frozen general models rivalling domain models has precedents in other imaging domains, though the result depends on the task (e.g. Liu et al., arXiv 2509.06467). The closest cardiac work, CMRVision (Jacob, Sharma, Rueckert, 2026), finds that cardiac-pretrained models consistently beat natural-image ones. But it evaluates only fine-tuned or LoRA-adapted encoders, compares natural vs cardiac pretraining only at ViT-S, and has no disease classification.
+**Position in the literature.** The study so far addresses a real but narrow gap, and is incremental. A review of ~28 foundation-model studies ([02_literature.md](02_literature.md)) found one published frozen comparison on these datasets: CMR-CLIP ([Nakashima et al., *Nat Commun* 2026](https://pmc.ncbi.nlm.nih.gov/articles/PMC13194963/)), which covers ACDC disease classification only, against CLIP-family baselines. No study covers M&Ms or M&Ms-2, frozen segmentation, or a cardiac MAE against DINOv3 or SAM. Frozen general models rivalling domain models has precedents in other imaging domains, though the result depends on the task (e.g. [Liu et al., arXiv 2509.06467](https://arxiv.org/abs/2509.06467)). The closest cardiac work, CMRVision ([Jacob, Sharma, Rueckert, 2026](https://arxiv.org/abs/2609.01308)), finds that cardiac-pretrained models consistently beat natural-image ones. But it evaluates only fine-tuned or LoRA-adapted encoders, compares natural vs cardiac pretraining only at ViT-S, and has no disease classification.
 
-## Proposed future work (2-3 months):
+## Proposed future work (2–3 months):
 
 We propose to turn the benchmark into a controlled study of *why*
 frozen cardiac features do or do not help. Does any advantage come from the training data
-(cardiac vs natural images) or from the training method (MAE vs DINO-style self-distillation)?
+(cardiac vs natural images) or from the training method (MAE, [He et al., 2022](https://arxiv.org/abs/2111.06377), vs DINO-style self-distillation)?
 Prior cardiac work has varied one factor at a time, under fine-tuning and at ViT-S. Jacob et al.
-(*JCMR* 2025) compare MAE vs DINO on the same cardiac data, and natural vs cardiac
+([*JCMR* 2025](https://doi.org/10.1016/j.jocmr.2025.101967)) compare MAE vs DINO on the same cardiac data, and natural vs cardiac
 initialisation within DINO; CMRVision varies the data within DINO. No study has run a matched
 2×2 of data × method and specifically with frozen evaluation as opposed to fine-tuning.
 
@@ -54,16 +54,16 @@ initialisation within DINO; CMRVision varies the data within DINO. No study has 
   - Evaluate all four models frozen, using several readouts. 
   - CineMA and SAM models stay as reference points.
 - **Month 3: label-efficiency curves.**
-  - Compare frozen vs lightly fine-tuned (LoRA) models on a subset of tasks, to test whether
+  - Compare frozen vs lightly fine-tuned (LoRA; [Hu et al., 2021](https://arxiv.org/abs/2106.09685)) models on a subset of tasks, to test whether
     cardiac pretraining matters most when labels are scarce.
   - *Stretch goal:* full fine-tuning of the same models, as an upper bound on what freezing
     costs (this might take considerable time).
-  - Use UK Biobank's large set of cardiac measurements (e.g. LV volumes for ~81k participants)
+  - Use UK Biobank's large set of cardiac measurements (e.g. LV volumes for ~81k participants; [field 24100](https://biobank.ndph.ox.ac.uk/showcase/field.cgi?id=24100))
     for label-efficiency curves at scale.
   - Analyse disease classification alongside segmentation throughout. Caveat: the public test
     sets are small (as few as 6 patients per class), so they have little power to detect
     differences between models.
 
 The main risks:
-- **Timing of UK Biobank access.** If it slips, public cine data is likely not sufficient for proper continued pre-training.
+- **Timing of UK Biobank access.** If it slips, public cine data is likely not sufficient for proper continued pretraining.
 - **Small effect sizes.** Mitigated by multiple seeds and confidence intervals.
