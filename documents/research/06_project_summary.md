@@ -10,11 +10,10 @@ Supporting detail: [REPORT.md](REPORT.md), [03_positioning.md](03_positioning.md
 
 **What has been done in HeartFM project.** This project asks whether the frozen features of a general-purpose vision foundation model already capture enough cardiac anatomy and pathology for such clinical tasks, or whether a cardiac-specific model such as CineMA is needed. Tasks are _segmentation_ of various anatomical structures of the heart and patient-level _disease classification_.
 
-We built a benchmark that freezes a pretrained natural-image or cardiac backbone and trains task heads on top. For the segmentation task, we use three decoders: a linear probe, a 2D conv decoder and a UNETR. The classification task uses either logistic-regression or linear heads on pooled features. The
-backbones are:
+We built a benchmark that freezes a pretrained natural-image or cardiac backbone and trains task heads on top. For the segmentation task, we use three decoders: a linear probe, a 2D conv decoder and a UNETR. The classification task uses either logistic-regression or linear heads on pooled features. The backbones are:
 - **CineMA**, a masked-autoencoder (MAE) model pretrained on ~75k UK Biobank cine MRI studies;
-- **DINOv3**, (sizes: S/B/L), distilled from a model trained on natural images;
-- **SAMv1**, (sizes: B/L/H), trained for natural-image segmentation.
+- **DINOv3** (sizes: S/B/L), distilled from a model trained on natural images;
+- **SAMv1** (sizes: B/L/H), trained for natural-image segmentation.
 
 Following CineMA, we have been evaluating on three publicly available datasets: ACDC, M&Ms, and M&Ms-2.
 
@@ -40,8 +39,9 @@ Prior cardiac work has varied one factor at a time, under fine-tuning and at ViT
 initialisation within DINO; CMRVision varies the data within DINO. No study has run a matched
 2×2 of data × method and specifically with frozen evaluation as opposed to fine-tuning.
 
-- **Month 1: replicate existing results, then add cheap analyses.**
-  - Enable seeding and re-run the full grid with several seeds. 
+- **Month 1: harden the evaluation pipeline.**
+  - Enable seeding and re-run with several seeds, for CineMA, DINOv3 ViT-B and one SAM size
+    only (other sizes dropped).
   - Run a from-scratch UNet baseline in this repo.
   - Add kNN / nearest-centroid classifiers as a second readout.
   - Add a randomly-initialised-backbone control, to show how much performance comes from
@@ -60,9 +60,6 @@ initialisation within DINO; CMRVision varies the data within DINO. No study has 
     costs (this might take considerable time).
   - Use UK Biobank's large set of cardiac measurements (e.g. LV volumes for ~81k participants)
     for label-efficiency curves at scale.
-  - Analyse disease classification alongside segmentation throughout. Caveat: the public test
-    sets are small (as few as 6 patients per class), so they have little power to detect
-    differences between models.
 
 The main risks:
 - **Timing of UK Biobank access.** If it slips, public cine data is likely not sufficient for proper continued pretraining.
