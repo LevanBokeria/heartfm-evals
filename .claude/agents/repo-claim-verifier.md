@@ -52,7 +52,8 @@ Return one markdown table, then notes:
 | ID | Verdict | Evidence | What the evidence supports |
 |---|---|---|---|
 
-- Verdict: `SUPPORTED`, `OVERSTATED`, `CONTRADICTED`, or `UNVERIFIABLE`.
+- Verdict: `SUPPORTED`, `OVERSTATED`, `UNDERSTATED` (the problem or effect is bigger than
+  claimed), `CONTRADICTED`, or `UNVERIFIABLE`.
 - Evidence: file paths with line numbers or row identifiers, and the actual values. No
   verdict without a pointer.
 - What the evidence supports: the most accurate one-sentence version of the claim.

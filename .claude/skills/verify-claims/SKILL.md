@@ -61,7 +61,20 @@ If the agent types are not registered in this session (they load at session star
 `general-purpose` agents and paste the body of `.claude/agents/<name>.md` as the start of
 the prompt.
 
-## 3. Reconcile and report
+## 3. Spot-check the verifiers
+
+The verifiers make mistakes too. In the first run, one quote was attached to the wrong
+section of the paper. Before writing the report, re-check by hand:
+- every CONTRADICTED verdict and every novelty counterexample: open the source, and confirm
+  the quote and the section it comes from;
+- the 2–3 OVERSTATED findings that would most change the document's message: re-run the
+  grep or re-read the number.
+
+WebFetch cannot read figures. If a verdict rests on a figure, look at the image the verifier
+saved, or say that it was not checked. Record what you checked, and any corrections, in the
+report header.
+
+## 4. Reconcile and report
 
 Merge both returns into `<doc-dir>/verification/<doc-stem>_verification.md`:
 
@@ -69,7 +82,7 @@ Merge both returns into `<doc-dir>/verification/<doc-stem>_verification.md`:
    and which verifiers ran. Note that both are Claude, so the check is not fully
    independent.
 2. **Summary counts** by verdict.
-3. **Problems first**: every claim marked CONTRADICTED, OVERSTATED or UNVERIFIABLE, plus every
+3. **Problems first**: every claim marked CONTRADICTED, OVERSTATED, UNDERSTATED or UNVERIFIABLE, plus every
    novelty claim. For each, give the claim as written in the draft (quote the sentence), the
    verdict, the evidence (file:line, value, or quoted passage with URL), and a suggested
    rewording that the evidence supports.
@@ -80,6 +93,8 @@ Verdicts (shared with the verifiers):
 - `SUPPORTED`: the evidence says this, at this strength.
 - `OVERSTATED`: the evidence supports a weaker or narrower version (fewer datasets, not
   significant, "some" not "every", a range that is too tight).
+- `UNDERSTATED`: the evidence shows the problem or effect is larger than the claim says
+  (e.g. "several results are invalid" when all of them are).
 - `CONTRADICTED`: the evidence says otherwise.
 - `UNVERIFIABLE`: the evidence needed is not accessible (paywall, data not in the repo, result
   not run). Say what would settle it.
@@ -87,7 +102,7 @@ Verdicts (shared with the verifiers):
 
 If more than a quarter of the checkable claims are not SUPPORTED, say so in the header.
 
-## 4. Report back
+## 5. Report back
 
 Tell the user the counts, the problem claims in one line each, and the report path. Ask
 before committing anything.

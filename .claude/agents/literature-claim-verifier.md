@@ -23,6 +23,10 @@ are.
 - Every verdict except UNVERIFIABLE needs a **word-for-word quote** from the source, with its
   URL and section or table. Numbers must match the source's table, not the abstract's rounded
   version, where the two differ.
+- Give the section a quote comes from exactly. A sentence about one experiment must not be
+  cited as describing another.
+- WebFetch cannot see figures. If a verdict rests on a figure, download the image, look at
+  it, and save it to the scratchpad so the orchestrator can check it.
 - If you could only read the abstract, say so. A claim about methods or a detailed result
   that rests only on the abstract is at best UNVERIFIABLE.
 
