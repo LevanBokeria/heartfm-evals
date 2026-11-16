@@ -6,7 +6,7 @@ Supporting detail: [REPORT.md](REPORT.md), [03_positioning.md](03_positioning.md
 
 ## Background and work to date:
 
-**Cardiac foundation models.** Foundation models have been increasingly pre-trained on multi-modal imaging datasets (MRI, CR, PET etc.) and used for various clinically relevant downstream tasks including tissue segmentation, disease classification, and others. One such recent foundation model, CineMA ([Fu et al., *Commun Med* 2026](https://doi.org/10.1038/s43856-026-01636-0); [code](https://github.com/mathpluscode/CineMA)), was pretrained on UK Biobank cardiac MRI images in a self-supervised manner, and shown to have SOTA performance on various tasks on various open datasets after full fine-tuning. 
+**Cardiac foundation models.** Foundation models have been increasingly pretrained on multi-modal imaging datasets (MRI, CT, PET etc.) and used for various clinically relevant downstream tasks including tissue segmentation, disease classification, and others. One such recent foundation model, CineMA ([Fu et al., *Commun Med* 2026](https://doi.org/10.1038/s43856-026-01636-0); [code](https://github.com/mathpluscode/CineMA)), was pretrained on UK Biobank cardiac MRI images in a self-supervised manner, and shown to have SOTA performance on various tasks on various open datasets after full fine-tuning. 
 
 **What has been done in HeartFM project.** This project asks whether the frozen features of a general-purpose vision foundation model already capture enough cardiac anatomy and pathology for such clinical tasks, or whether a cardiac-specific model such as CineMA is needed. Tasks are _segmentation_ of cardiac structures and patient-level _disease classification_. We freeze a pretrained natural-image or cardiac backbone and train different task heads on top. For the segmentation task, we use three decoders: a linear probe, a 2D conv decoder and a UNETR. The classification task uses either logistic-regression or a linear head on pooled features. We evaluate on three publicly available datasets: ACDC, M&Ms, and M&Ms-2. The model backbones are: **CineMA**, a masked-autoencoder (MAE); **DINOv3** (sizes: S/B/L), trained on natural images; **SAMv1** (sizes: B/L/H), trained for natural-image segmentation.
 
@@ -26,7 +26,7 @@ frozen cardiac features do or do not help. Does any advantage come from the trai
 Prior cardiac work has varied one factor at a time, under fine-tuning and at ViT-S. No study has run a matched
 2×2 of data × method with frozen evaluation as opposed to fine-tuning. This proposal strengthens the existing study, although it remains incremental in nature. 
 
-### The core 2×2 design: pretraining data × pretraining method, all ViT-B, evaluated frozen.**
+### The core 2×2 design: pretraining data × pretraining method, all ViT-B, evaluated frozen.
 
 | | MAE | DINO |
 |---|---|---|
@@ -39,12 +39,13 @@ Prior cardiac work has varied one factor at a time, under fine-tuning and at ViT
   - Add a _regression_ task for predicting ejection fraction (EF) and ventricular volumes.
 - **Month 2: the core 2×2 experiment** at CineMA-matched model size (ViT-B).
   - Take public natural-image DINOv3 and MAE ViT-B models and continue pretraining both on UK Biobank cine MRI.
-  - Evaluate all four models frozen, using several readouts. CineMA and SAM models stay as reference points as their architectures are neither DINO-based nor pure MAE.
+  - Evaluate all four models frozen, using several readouts. CineMA and SAM models stay as reference points: CineMA is an MAE but differs in architecture and input (conv stem, 3D input), and SAM is neither DINO- nor MAE-pretrained.
 - **Month 3: label-efficiency curves.**
+  - Use UK Biobank's large set of cardiac measurements (e.g. LV volumes for ~81k participants)
+    for label-efficiency curves at scale, for the four 2×2 models and the CineMA and SAM
+    references, all frozen.
   - *Stretch goal:* LoRA and full fine-tuning of the same models, as an upper bound on what freezing
     costs (this might take considerable time).
-  - Use UK Biobank's large set of cardiac measurements (e.g. LV volumes for ~81k participants)
-    for label-efficiency curves at scale.
 
 ## Scope at a glance: done vs proposed
 
@@ -52,12 +53,12 @@ M1–M3 = month of the proposed work · ⭐ = stretch goal
 
 | Factor | ✅ Done so far | 🆕 Proposed |
 |---|---|---|
-| **Backbones** | CineMA (ViT-B)<br>DINOv3 (S, B, L)<br>SAM (B, L, H), classification only | Seeded re-runs limited to CineMA, DINOv3 ViT-B and one SAM size (M1)<br>SAM v1 segmentation, one size (M1)<br>Random-init control, CineMA architecture (M1)<br>MAE ViT-B, natural images (M2)<br>DINOv3 ViT-B → UK Biobank (M2)<br>MAE ViT-B → UK Biobank (M2) |
+| **Backbones** | CineMA (ViT-B)<br>DINOv3 (S, B, L)<br>SAM (B, L, H), classification only | SAM v1 segmentation, one size (M1)<br>Random-init control, CineMA architecture (M1)<br>MAE ViT-B, natural images (M2)<br>DINOv3 ViT-B → UK Biobank (M2)<br>MAE ViT-B → UK Biobank (M2) |
 | **Continued pretraining on cardiac MRI** | None: natural-image models used as released | DINOv3 ViT-B and MAE ViT-B on UK Biobank cine MRI (M2) |
 | **Backbone adaptation** | Frozen | LoRA ⭐<br>Full fine-tuning ⭐ |
 | **Segmentation heads** | Linear probe<br>Conv decoder<br>UNETR | — |
 | **Classification heads** | Logistic regression<br>Linear | kNN / nearest centroid (M1) |
 | **Regression heads** | — | Linear probe (M1) |
 | **Tasks** | Segmentation (LV, RV, myocardium)<br>Disease classification (patient-level) | Ejection fraction and ventricular volumes (M1)<br>UK Biobank cardiac measurements, with label-efficiency curves (M3) |
-| **Datasets** | ACDC<br>M&Ms<br>M&Ms-2 | UK Biobank cine MRI: continued pretraining (M2); |
-| **Baselines and reliability** | From-scratch UNet cited from the CineMA paper<br>All results single unseeded runs<br>Certain results need re-running post bug-fix | From-scratch UNet run in this repo (M1)<br>Random-init backbone control (M1)<br>Classifier on segmentation-derived measurements (M1)<br>Re-run with several fixed seeds: CineMA, DINOv3 ViT-B, one SAM size (M1) |
+| **Datasets** | ACDC<br>M&Ms<br>M&Ms-2 | UK Biobank cine MRI: continued pretraining (M2)<br>UK Biobank cardiac measurements: evaluation (M3) |
+| **Baselines and reliability** | From-scratch UNet cited from the CineMA paper<br>All results single unseeded runs<br>Certain results need re-running post bug-fix | From-scratch UNet run in this repo (M1)<br>Random-init backbone control (M1)<br>Re-run with several fixed seeds: CineMA, DINOv3 ViT-B, one SAM size (M1) |
