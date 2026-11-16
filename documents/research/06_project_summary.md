@@ -15,6 +15,9 @@ backbones are:
 - **DINOv3** (S/B/L), distilled from a model trained on natural images;
 - **SAM** (B/L/H), trained for natural-image segmentation, with an MAE-initialised encoder.
 
+Unlike much of the cardiac literature, we did not continue pretraining the natural-image models
+on cardiac MRI. DINOv3 and SAM are used exactly as released.
+
 Tasks are segmentation of the LV, RV and myocardium, and patient-level disease classification
 (5 classes on ACDC and M&Ms, 6 on M&Ms-2). We use the official challenge test splits, as CineMA
 does. The classification test sets match CineMA's exactly (50/105/108 patients); the
