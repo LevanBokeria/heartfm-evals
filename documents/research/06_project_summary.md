@@ -4,7 +4,7 @@
 Supporting detail: [REPORT.md](REPORT.md), [03_positioning.md](03_positioning.md),
 [04_followups.md](04_followups.md), [05_study_lookup.md](05_study_lookup.md).*
 
-**Cardiac foundation models.** In the domain of cardiovascular modelling, foundation models have been increasingly trained on multi-modal imaging datasets (such as MRI scans, CT scans, PET scans, etc) and used for various clinically relevant downstream tasks including tissue segmentation in MRI images, disease classification from MRI images, and others. One such recent foundation model [CineMA](link) (cite) was pre-trained on UK BioBank cardiac MRI images and was shown to have SOTA performance on various open datasets after full fine-tuning. 
+**Cardiac foundation models.** In the domain of cardiovascular modelling, foundation models have been increasingly trained on multi-modal imaging datasets (such as MRI scans, CT scans, PET scans, etc) and used for various clinically relevant downstream tasks including tissue segmentation in MRI images, disease classification from MRI images, and others. One such recent foundation model [CineMA](link) (cite) was pre-trained on UK BioBank cardiac MRI images and was shown to have SOTA performance on various tasks on various open datasets after full fine-tuning. 
 
 **What has been done in HeartFM project.** This project asks whether the frozen features of a general-purpose vision
 foundation model already capture enough cardiac anatomy and pathology for such clinical tasks, or
