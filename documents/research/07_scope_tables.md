@@ -3,6 +3,22 @@
 *November 2026. Companion to [06_project_summary.md](06_project_summary.md), which gives the
 reasoning and caveats behind each item.*
 
+## Overview
+
+M1–M3 = month of the proposed work · ⭐ = stretch goal
+
+| Factor | ✅ Done so far | 🆕 Proposed |
+|---|---|---|
+| **Backbones** | CineMA (ViT-B)<br>DINOv3 (S, B, L)<br>SAM (B, L, H), classification only | SAM v1 segmentation (M1)<br>Random-init control, CineMA architecture (M1)<br>MAE ViT-B, natural images (M2)<br>DINOv3 ViT-B → UK Biobank (M2)<br>MAE ViT-B → UK Biobank (M2) |
+| **Continued pretraining on cardiac MRI** | None: natural-image models used as released | DINOv3 ViT-B and MAE ViT-B on UK Biobank cine MRI (M2) |
+| **Backbone adaptation** | Frozen | LoRA (M3)<br>Full fine-tuning ⭐ |
+| **Segmentation heads** | Linear probe<br>Conv decoder<br>UNETR | — |
+| **Classification heads** | Logistic regression<br>Linear | kNN / nearest centroid (M1) |
+| **Regression heads** | — | Linear probe (M1) |
+| **Tasks** | Segmentation (LV, RV, myocardium)<br>Disease classification (patient-level) | Ejection fraction and ventricular volumes (M1)<br>UK Biobank cardiac measurements, with label-efficiency curves (M3) |
+| **Datasets** | ACDC<br>M&Ms<br>M&Ms-2 | UK Biobank cine MRI: continued pretraining (M2); evaluation on scans after 6 Nov 2023 (M3) |
+| **Baselines and reliability** | From-scratch UNet cited from the CineMA paper<br>All results single unseeded runs<br>6 CineMA linear/conv segmentation runs invalid | From-scratch UNet run in this repo (M1)<br>Random-init backbone control (M1)<br>Classifier on segmentation-derived measurements (M1)<br>Full grid re-run with several fixed seeds (M1) |
+
 ## Part 1. Work done so far
 
 **Backbones.** All are frozen. None of the natural-image models was further pretrained on cardiac
