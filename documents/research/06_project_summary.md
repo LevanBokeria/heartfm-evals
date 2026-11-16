@@ -8,7 +8,7 @@ Supporting detail: [REPORT.md](REPORT.md), [03_positioning.md](03_positioning.md
 
 **Cardiac foundation models.** Foundation models have been increasingly pretrained on multi-modal imaging datasets (MRI, CT, PET etc.) and used for various clinically relevant downstream tasks including tissue segmentation, disease classification, and others. One such recent foundation model, CineMA ([Fu et al., *Commun Med* 2026](https://doi.org/10.1038/s43856-026-01636-0); [code](https://github.com/mathpluscode/CineMA)), was pretrained on UK Biobank cardiac MRI images in a self-supervised manner, and shown to have SOTA performance on various tasks on various open datasets after full fine-tuning. 
 
-**What has been done in HeartFM project.** This project asks whether the frozen features of a general-purpose vision foundation model already capture enough cardiac anatomy and pathology for such clinical tasks, or whether a cardiac-specific model such as CineMA is needed. Tasks are _segmentation_ of cardiac structures and patient-level _disease classification_. We freeze a pretrained natural-image or cardiac backbone and train different task heads on top. For the segmentation task, we use three decoders: a linear probe, a 2D conv decoder and a UNETR. The classification task uses either logistic-regression or a linear head on pooled features. We evaluate on three publicly available datasets: ACDC, M&Ms, and M&Ms-2. The model backbones are: **CineMA**, a masked-autoencoder (MAE); **DINOv3** (sizes: S/B/L), trained on natural images; **SAMv1** (sizes: B/L/H), trained for natural-image segmentation.
+**What has been done in HeartFM project.** This project asks whether the frozen features of a general-purpose vision foundation model already capture enough cardiac anatomy and pathology for such clinical tasks, or whether a cardiac-specific model such as CineMA is needed. Tasks are _segmentation_ of cardiac structures and patient-level _disease classification_. We freeze a pretrained natural-image or cardiac backbone and train different task heads on top. For the segmentation task, we use three decoders: a linear probe, a 2D conv decoder and a UNETR. The classification task uses either logistic-regression or a linear head on pooled features. We evaluate on three publicly available datasets: ACDC, M&Ms, and M&Ms-2. The model backbones are: **CineMA**, a masked-autoencoder (MAE); **DINOv3** (sizes: S/B/L), trained on natural images; **SAMv1** (sizes: B/L/H), trained for natural-image segmentation. We use SAM v1 rather than SAM2 because its plain-ViT encoder matches DINOv3 and CineMA; SAM2's hierarchical Hiera encoder would add an architectural confound.
 
 Current WIP results:
 - **Classification:** frozen CineMA shows no consistent advantage over frozen DINOv3 (leads on ACDC, mixed on M&Ms and trails on M&Ms-2).
@@ -36,6 +36,7 @@ Prior cardiac work has varied one factor at a time, under fine-tuning and at ViT
 - **Month 1: harden the evaluation pipeline.**
   - Re-run with several seeds; Run a from-scratch UNet baseline in this repo; Add a randomly-initialised-backbone control, to show how much performance comes from pretraining at all.
   - Add kNN / nearest-centroid classifiers as a second readout for disease classification.
+  - Add an attentive probe over patch tokens for disease classification. Linear readouts are known to understate MAE features, which would bias the MAE vs DINO comparison in the 2×2.
   - Add a _regression_ task for predicting ejection fraction (EF) and ventricular volumes.
 - **Month 2: the core 2×2 experiment** at CineMA-matched model size (ViT-B).
   - Take public natural-image DINOv3 and MAE ViT-B models and continue pretraining both on UK Biobank cine MRI.
@@ -57,7 +58,7 @@ M1–M3 = month of the proposed work · ⭐ = stretch goal
 | **Continued pretraining on cardiac MRI** | None: natural-image models used as released | DINOv3 ViT-B and MAE ViT-B on UK Biobank cine MRI (M2) |
 | **Backbone adaptation** | Frozen | LoRA ⭐<br>Full fine-tuning ⭐ |
 | **Segmentation heads** | Linear probe<br>Conv decoder<br>UNETR | — |
-| **Classification heads** | Logistic regression<br>Linear | kNN / nearest centroid (M1) |
+| **Classification heads** | Logistic regression<br>Linear | kNN / nearest centroid (M1)<br>Attentive probe over patch tokens (M1) |
 | **Regression heads** | — | Linear probe (M1) |
 | **Tasks** | Segmentation (LV, RV, myocardium)<br>Disease classification (patient-level) | Ejection fraction and ventricular volumes (M1)<br>UK Biobank cardiac measurements, with label-efficiency curves (M3) |
 | **Datasets** | ACDC<br>M&Ms<br>M&Ms-2 | UK Biobank cine MRI: continued pretraining (M2)<br>UK Biobank cardiac measurements: evaluation (M3) |
