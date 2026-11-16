@@ -91,8 +91,9 @@ initialisation within DINO; CMRVision varies the data within DINO. No study has 
     considerable time, so it comes last.
   - Use UK Biobank's large set of cardiac measurements (e.g. LV volumes for ~81k participants)
     for label-efficiency curves at scale.
-  - Keep disease classification as a secondary task; the public test sets are small (as few as
-    6 patients per class).
+  - Analyse disease classification alongside segmentation throughout. Caveat: the public test
+    sets are small (as few as 6 patients per class), so they have little power to detect
+    differences between models.
 
 To keep the comparison fair, all UK Biobank evaluation will use participants whose cine MRI was
 acquired after CineMA's data cut-off (6 Nov 2023). CineMA publishes no participant list, so we
