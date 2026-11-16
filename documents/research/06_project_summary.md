@@ -7,9 +7,10 @@ Supporting detail: [REPORT.md](REPORT.md), [03_positioning.md](03_positioning.md
 **What has been done.** The project asks whether the frozen features of a general-purpose vision
 foundation model already capture enough cardiac anatomy and pathology for clinical tasks, or
 whether a cardiac-specific model is needed. We built a benchmark that freezes a pretrained
-backbone and trains task heads on top. The heads range from linear probes (a few thousand
-parameters) to a UNETR decoder (31–48M parameters, which also sees the raw image). The backbones
-are:
+backbone and trains task heads on top. Segmentation uses three decoders: a linear probe (a few
+thousand parameters), a 2D conv decoder (1–5M) and a UNETR decoder (31–48M, which also sees the
+raw image). Classification uses logistic-regression and linear heads on pooled features. The
+backbones are:
 - **CineMA**, a masked-autoencoder (MAE) model pretrained on ~75k UK Biobank cine MRI studies;
 - **DINOv3** (S/B/L), distilled from a model trained on natural images;
 - **SAM** (B/L/H), trained for natural-image segmentation, with an MAE-initialised encoder.
