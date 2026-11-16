@@ -25,7 +25,10 @@ We propose to turn the benchmark into a controlled study of *why*
 frozen cardiac features do or do not help. Does any advantage come from the training data
 (cardiac vs natural images) or from the training method (MAE vs DINO-style self-distillation)?
 Prior cardiac work has varied one factor at a time, under fine-tuning and at ViT-S. No study has run a matched
-2×2 of data × method with frozen evaluation as opposed to fine-tuning. This proposal strengthens the existing study, although it remains incremental in nature. 
+2×2 of data × method with frozen evaluation as opposed to fine-tuning. The closest design is
+[Jacob et al., *JCMR* 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC12745146/), which covers three
+of the four cells (cardiac DINO, cardiac MAE and natural-image DINO, all ViT-S/8), with every model
+fine-tuned. This proposal strengthens the existing study, although it remains incremental in nature. 
 
 ### The core 2×2 design: pretraining data × pretraining method, all ViT-B, evaluated frozen.
 
