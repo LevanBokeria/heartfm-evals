@@ -9,20 +9,21 @@ M1–M3 = month of the proposed work · ⭐ = stretch goal
 
 | Factor | ✅ Done so far | 🆕 Proposed |
 |---|---|---|
-| **Backbones** | CineMA (ViT-B)<br>DINOv3 (S, B, L)<br>SAM (B, L, H), classification only | Seeded re-runs limited to CineMA, DINOv3 ViT-B and one SAM size (M1)<br>SAM v1 segmentation, one size (M1)<br>Random-init control, CineMA architecture (M1)<br>MAE ViT-B, natural images (M2)<br>DINOv3 ViT-B → UK Biobank (M2)<br>MAE ViT-B → UK Biobank (M2) |
+| **Backbones** | CineMA (ViT-B)<br>DINOv3 (S, B, L)<br>SAM (B, L, H), classification only | SAM v1 segmentation, one size (M1)<br>Random-init control, CineMA architecture (M1)<br>MAE ViT-B, natural images (M2)<br>DINOv3 ViT-B → UK Biobank (M2)<br>MAE ViT-B → UK Biobank (M2) |
 | **Continued pretraining on cardiac MRI** | None: natural-image models used as released | DINOv3 ViT-B and MAE ViT-B on UK Biobank cine MRI (M2) |
-| **Backbone adaptation** | Frozen | LoRA (M3)<br>Full fine-tuning ⭐ |
+| **Backbone adaptation** | Frozen | LoRA ⭐<br>Full fine-tuning ⭐ |
 | **Segmentation heads** | Linear probe<br>Conv decoder<br>UNETR | — |
-| **Classification heads** | Logistic regression<br>Linear | kNN / nearest centroid (M1) |
+| **Classification heads** | Logistic regression<br>Linear | kNN / nearest centroid (M1)<br>Attentive probe over patch tokens (M1) |
 | **Regression heads** | — | Linear probe (M1) |
 | **Tasks** | Segmentation (LV, RV, myocardium)<br>Disease classification (patient-level) | Ejection fraction and ventricular volumes (M1)<br>UK Biobank cardiac measurements, with label-efficiency curves (M3) |
 | **Datasets** | ACDC<br>M&Ms<br>M&Ms-2 | UK Biobank cine MRI: continued pretraining (M2); evaluation on scans after 6 Nov 2023 (M3) |
-| **Baselines and reliability** | From-scratch UNet cited from the CineMA paper<br>All results single unseeded runs<br>6 CineMA linear/conv segmentation runs invalid | From-scratch UNet run in this repo (M1)<br>Random-init backbone control (M1)<br>Classifier on segmentation-derived measurements (M1)<br>Re-run with several fixed seeds: CineMA, DINOv3 ViT-B, one SAM size (M1) |
+| **Baselines and reliability** | From-scratch UNet cited from the CineMA paper<br>All results single unseeded runs<br>6 CineMA linear/conv segmentation runs invalid | From-scratch UNet run in this repo (M1)<br>Random-init backbone control (M1)<br>Re-run with several fixed seeds: CineMA, DINOv3 ViT-B, one SAM size (M1) |
 
 ## Part 1. Work done so far
 
 **Backbones.** All are frozen. None of the natural-image models was further pretrained on cardiac
-data.
+data. We use SAM v1 rather than SAM2 because its plain-ViT encoder matches DINOv3 and CineMA;
+SAM2's hierarchical Hiera encoder would add an architectural confound.
 
 | Backbone | Sizes | Pretraining data | Pretraining method | Continued pretraining on cardiac MRI | Segmentation | Classification |
 |---|---|---|---|---|---|---|
@@ -102,7 +103,7 @@ control.
 | Adaptation | Status |
 |---|---|
 | Frozen backbone | ✅ 🔁 |
-| 🆕 LoRA adapters | 🆕 subset of tasks, with label-efficiency curves (M3) |
+| 🆕 LoRA adapters | ⭐ (M3) |
 | 🆕 Full fine-tuning | ⭐ upper bound on the cost of freezing (M3); fair tuning per model may take considerable time |
 
 **Heads trained on frozen features.**
@@ -115,6 +116,7 @@ control.
 | Classification | Logistic regression | small | ✅ 🔁 |
 | Classification | Linear | small | ✅ 🔁 |
 | Classification | 🆕 kNN / nearest centroid | none | 🆕 second readout (M1) |
+| Classification | 🆕 Attentive probe over patch tokens | small | 🆕 fair readout for MAE features, which linear probes understate (M1) |
 | 🆕 Regression | 🆕 Linear probe | small | 🆕 ejection fraction, ventricular volumes (M1); UK Biobank measurements (M3) |
 
 **Datasets.**
@@ -141,6 +143,5 @@ control.
 |---|---|---|
 | From-scratch UNet | Cited from the CineMA paper, not run here | 🆕 run in this repo on the same splits and metric (M1) |
 | Random-init backbone control | None | 🆕 added (M1) |
-| 🆕 Classifier on segmentation-derived measurements | — | 🆕 clinical baseline (M1) |
 | Seeds | Seeding disabled; all results are single unseeded runs | 🔁 re-run with several fixed seeds: CineMA, DINOv3 ViT-B, one SAM size (M1) |
 | CineMA linear/conv segmentation | Invalid (since-fixed slice-misalignment bug) | 🔁 re-run (M1) |
