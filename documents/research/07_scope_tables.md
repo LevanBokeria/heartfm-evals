@@ -9,7 +9,7 @@ M1–M3 = month of the proposed work · ⭐ = stretch goal
 
 | Factor | ✅ Done so far | 🆕 Proposed |
 |---|---|---|
-| **Backbones** | CineMA (ViT-B)<br>DINOv3 (S, B, L)<br>SAM (B, L, H), classification only | SAM v1 segmentation (M1)<br>Random-init control, CineMA architecture (M1)<br>MAE ViT-B, natural images (M2)<br>DINOv3 ViT-B → UK Biobank (M2)<br>MAE ViT-B → UK Biobank (M2) |
+| **Backbones** | CineMA (ViT-B)<br>DINOv3 (S, B, L)<br>SAM (B, L, H), classification only | Seeded re-runs limited to CineMA, DINOv3 ViT-B and one SAM size (M1)<br>SAM v1 segmentation, one size (M1)<br>Random-init control, CineMA architecture (M1)<br>MAE ViT-B, natural images (M2)<br>DINOv3 ViT-B → UK Biobank (M2)<br>MAE ViT-B → UK Biobank (M2) |
 | **Continued pretraining on cardiac MRI** | None: natural-image models used as released | DINOv3 ViT-B and MAE ViT-B on UK Biobank cine MRI (M2) |
 | **Backbone adaptation** | Frozen | LoRA (M3)<br>Full fine-tuning ⭐ |
 | **Segmentation heads** | Linear probe<br>Conv decoder<br>UNETR | — |
@@ -17,7 +17,7 @@ M1–M3 = month of the proposed work · ⭐ = stretch goal
 | **Regression heads** | — | Linear probe (M1) |
 | **Tasks** | Segmentation (LV, RV, myocardium)<br>Disease classification (patient-level) | Ejection fraction and ventricular volumes (M1)<br>UK Biobank cardiac measurements, with label-efficiency curves (M3) |
 | **Datasets** | ACDC<br>M&Ms<br>M&Ms-2 | UK Biobank cine MRI: continued pretraining (M2); evaluation on scans after 6 Nov 2023 (M3) |
-| **Baselines and reliability** | From-scratch UNet cited from the CineMA paper<br>All results single unseeded runs<br>6 CineMA linear/conv segmentation runs invalid | From-scratch UNet run in this repo (M1)<br>Random-init backbone control (M1)<br>Classifier on segmentation-derived measurements (M1)<br>Full grid re-run with several fixed seeds (M1) |
+| **Baselines and reliability** | From-scratch UNet cited from the CineMA paper<br>All results single unseeded runs<br>6 CineMA linear/conv segmentation runs invalid | From-scratch UNet run in this repo (M1)<br>Random-init backbone control (M1)<br>Classifier on segmentation-derived measurements (M1)<br>Re-run with several fixed seeds: CineMA, DINOv3 ViT-B, one SAM size (M1) |
 
 ## Part 1. Work done so far
 
@@ -74,7 +74,7 @@ data.
 
 The same tables, with proposed additions next to the existing work.
 
-Legend: ✅ done · 🔁 re-run (with fixed seeds) · 🆕 proposed · ⭐ stretch goal · M1–M3 = month
+Legend: ✅ done · 🔁 re-run with fixed seeds (CineMA, DINOv3 ViT-B, one SAM size only) · 🆕 proposed · ⭐ stretch goal · M1–M3 = month
 
 **Backbones.** Three new pretrained models complete a matched 2×2 at ViT-B, plus a random-init
 control.
@@ -82,8 +82,8 @@ control.
 | Backbone | Sizes | Pretraining data | Pretraining method | Continued pretraining on cardiac MRI | Segmentation | Classification | 🆕 UK Biobank measurements |
 |---|---|---|---|---|---|---|---|
 | CineMA | ViT-B | UK Biobank cine MRI (~75k studies) | MAE | n/a (cardiac from the start) | ✅ 🔁 | ✅ 🔁 | 🆕 |
-| DINOv3 | S, B, L | Natural images | DINO self-distillation | ❌ used as released | ✅ 🔁 | ✅ 🔁 | 🆕 (ViT-B) |
-| SAM | B, L, H | Natural images (SA-1B) | Supervised segmentation (MAE-initialised encoder) | ❌ used as released | 🆕 SAM v1 (M1) | ✅ 🔁 | — |
+| DINOv3 | S, B, L | Natural images | DINO self-distillation | ❌ used as released | ✅ (🔁 ViT-B only) | ✅ (🔁 ViT-B only) | 🆕 (ViT-B) |
+| SAM | B, L, H | Natural images (SA-1B) | Supervised segmentation (MAE-initialised encoder) | ❌ used as released | 🆕 SAM v1, one size (M1) | ✅ (🔁 one size only) | — |
 | 🆕 MAE (M2) | ViT-B | Natural images (ImageNet) | MAE | ❌ used as released | 🆕 | 🆕 | 🆕 |
 | 🆕 DINOv3 → UK Biobank (M2) | ViT-B | Natural images, then UK Biobank cine MRI | DINO self-distillation | 🆕 yes | 🆕 | 🆕 | 🆕 |
 | 🆕 MAE → UK Biobank (M2) | ViT-B | Natural images, then UK Biobank cine MRI | MAE | 🆕 yes | 🆕 | 🆕 | 🆕 |
@@ -131,7 +131,7 @@ control.
 | Task | Target | Metric | Status |
 |---|---|---|---|
 | Segmentation | LV, RV, myocardium | Dice | ✅ 🔁 |
-| Disease classification | Patient-level diagnosis | Macro-F1, AUROC (one-vs-rest) | ✅ 🔁 analysed alongside segmentation; low power on small test sets |
+| Disease classification | Patient-level diagnosis | Macro-F1, AUROC (one-vs-rest) | ✅ 🔁 |
 | 🆕 Cardiac function | Ejection fraction, ventricular volumes (public datasets) | Regression error | 🆕 M1 |
 | 🆕 UK Biobank measurements | Cardiac measurements (e.g. LV volumes, ~81k participants) | Regression error, label-efficiency curves | 🆕 M3 |
 
@@ -142,5 +142,5 @@ control.
 | From-scratch UNet | Cited from the CineMA paper, not run here | 🆕 run in this repo on the same splits and metric (M1) |
 | Random-init backbone control | None | 🆕 added (M1) |
 | 🆕 Classifier on segmentation-derived measurements | — | 🆕 clinical baseline (M1) |
-| Seeds | Seeding disabled; all results are single unseeded runs | 🔁 full grid re-run with several fixed seeds (M1) |
+| Seeds | Seeding disabled; all results are single unseeded runs | 🔁 re-run with several fixed seeds: CineMA, DINOv3 ViT-B, one SAM size (M1) |
 | CineMA linear/conv segmentation | Invalid (since-fixed slice-misalignment bug) | 🔁 re-run (M1) |
