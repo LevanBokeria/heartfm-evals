@@ -1,4 +1,4 @@
-# heartfm-evals — summary and proposed next steps
+# heartfm-evals — summary and proposed next steps (condensed)
 
 *November 2026, revised after [verification](verification/06_project_summary_verification.md).
 Supporting detail: [REPORT.md](REPORT.md), [03_positioning.md](03_positioning.md),
@@ -21,7 +21,7 @@ Current WIP results:
 ## Proposed future work (2–3 months):
 
 We propose to turn the benchmark into a controlled study of *why* frozen cardiac features do or do not help. Does any advantage come from the training data (cardiac vs natural images) or from the training method (MAE vs DINO-style self-distillation)? Use label-efficiency curves to examine how any advantage of a particular data x method combination changes with the number of labeled examples available for a downstream task.
-No study has run a matched 2×2 of data × method with frozen evaluation as opposed to fine-tuning. The closest design is [Jacob et al., *JCMR* 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC12745146/), which covers three of the four cells with every model fine-tuned. 
+No study has run a matched 2×2 of data × method with frozen evaluation as opposed to fine-tuning. The closest design is [Jacob et al., *JCMR* 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC12745146/), which covers three of the four cells, all ViT-S/8 and fine-tuned. 
 This proposal strengthens the existing HeartFM study, although it remains incremental in nature. 
 
 ### The core 2×2 design: pretraining data × pretraining method, all ViT-B, evaluated frozen.
