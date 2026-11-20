@@ -30,6 +30,8 @@ Conventions as in [04_followups.md](04_followups.md):*
 | Core plan, Isambard-AI node-hours | ~90 | ~265 | ~950 |
 | *Stretch goals (separable): LoRA + full fine-tuning, incl. contingency* | *~190* | *~600* | *~2,600* |
 | *Core + stretch, GH200-hours* | *~540* | *~1,650* | *~6,400* |
+| *High-resolution add-on (separable, §2.8), incl. contingency* | *~25* | *~100* | *~565* |
+| *…plus natural-image DINOv3 + MAE also evaluated at 512 px* | *~35* | *~130* | *~665* |
 
 **What drives the total:**
 - **The data-scaling curve is the largest item:** about 335 of 1,050 central hours. Each subset model is trained for the same number of images as the full-data model (see §2.3). Training each subset for a fixed number of epochs instead would cut this item several-fold.
@@ -91,7 +93,7 @@ No published benchmark compares GH200 with H100 directly. The H100 factor is abo
 
 **Scaling efficiency.** Multi-GPU scaling efficiency is set at 95 / 90 / 80 %. In practice a central DINOv3 run takes about 11 h wall-clock on one node (4 GPUs), or about 3 h on 4 nodes.
 
-**Gram anchoring and high-resolution adaptation (out of scope as requested).** Prior literature does use them:
+**Gram anchoring and high-resolution adaptation.** Both are left out of the core plan. A high-resolution stage is costed as an optional add-on in §2.8. Prior literature does use both:
 
 | Work | Gram anchoring | High-resolution adaptation |
 |---|---|---|
@@ -184,6 +186,36 @@ No published benchmark compares GH200 with H100 directly. The H100 factor is abo
 - **Optional UKB line:** fine-tuning on UKB at the 1 % and 10 % budgets.
 - **SAM at 1024 px is again most of the cost:** about 270 of the ~460 h central before contingency.
 
+### 2.8 Optional add-on: high-resolution stage (separable)
+
+**Design:**
+- Add a short high-resolution phase only to the two **full-data** continued-pretraining models (DINOv3 → UKB, MAE → UKB). The scaling checkpoints don't get one.
+- Evaluate both models at **512 px and at 224 px** on a reduced grid: the best decoder (likely UNETR) plus the classification heads, on 3 datasets × 3 seeds.
+- Report it as a separate ablation: does resolution change the domain-vs-method conclusion?
+- *Optional:* also evaluate the natural-image DINOv3 and MAE at 512 px, so that the full 2×2 is compared at 512. Released DINOv3 ViT-B already had a high-resolution phase; MAE did not.
+
+**Recipe and cost assumptions [I]:**
+- **DINOv3:** follows the DINOv3 and MedDINOv3 recipe: **5k / 10k / 20k iterations** (low / central / high) at batch 512, global crops 512–768 px and local crops 112–336 px (V for the recipe).
+  - Per image this costs about **4 / 6 / 9 ×** the 224 px recipe: about 4–5× the tokens, plus quadratic attention.
+  - That gives about **6 / 27 / 128 GH200-h**.
+- **MAE:** there is no published high-resolution phase for MAE, so I assume the same number of images at 512 px. That gives about **1 / 5 / 21 GH200-h**, because MAE's encoder sees only 25 % of the tokens.
+- **Pilots:** 0.3 / 0.5 / 1.0 × the phase.
+- **Evaluation at 512 px:** about 5 / 6 / 8 × the 224 px cost.
+
+| Item (GH200-hours) | Low | Central | High |
+|---|---|---|---|
+| High-resolution pretraining phase (DINOv3 + MAE) | 7 | 32 | 149 |
+| Pilots | 2 | 16 | 149 |
+| Evaluation of the 2 models at 512 px, reduced grid | 9 | 23 | 67 |
+| Evaluation of the 2 models at 224 px, reduced grid | 3 | 5 | 11 |
+| Contingency (+15 / +30 / +50 %) | 3 | 23 | 188 |
+| **Add-on total** | **~25** | **~100** | **~565** |
+| *Optional: natural-image DINOv3 + MAE at 512 px (incl. contingency)* | *+10* | *+30* | *+100* |
+
+**Try heart-centred cropping first [I].** Cropping around the heart at 224 px raises the effective resolution of the heart at no pretraining cost, and may give most of the same benefit. It is worth testing before committing to this add-on.
+
+**Storage:** at 512 px each image has 1,024 patch tokens rather than 196, so cached features for these models are about 5× larger.
+
 ## 3. Line-item budget (GH200-hours)
 
 | Item | Low | Central | High |
@@ -210,6 +242,11 @@ No published benchmark compares GH200 with H100 directly. The H100 factor is abo
 | Stretch: fine-tuning on UKB at the 1 % / 10 % budgets (optional) | 20 | 50 | 120 |
 | Stretch contingency (+15 / +30 / +50 %) | 25 | 138 | 863 |
 | **Stretch total** | **192** | **597** | **2,590** |
+| High-resolution add-on (§2.8): pretraining phase + pilots | 9 | 48 | 298 |
+| High-resolution add-on: evaluation at 512 + 224 px, reduced grid | 12 | 28 | 78 |
+| High-resolution add-on contingency | 3 | 23 | 188 |
+| **High-resolution add-on total** | **~25** | **~100** | **~565** |
+| *Optional: natural-image DINOv3 + MAE at 512 px (incl. contingency)* | *10* | *30* | *100* |
 
 ## 4. Ways to cut the budget, in order of hours saved [I]
 
