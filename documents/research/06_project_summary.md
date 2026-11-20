@@ -45,6 +45,7 @@ fine-tuned. This proposal strengthens the existing study, although it remains in
 - **Month 2: the core 2×2 experiment** at CineMA-matched model size (ViT-B).
   - Take public natural-image DINOv3 and MAE ViT-B models and continue pretraining both on UK Biobank cine MRI.
   - Evaluate all four models frozen, using several readouts. CineMA and SAM models stay as reference points: CineMA is an MAE but differs in architecture and input (conv stem, 3D input), and SAM's encoder is MAE-initialised but then trained with supervision.
+  - Data-scaling curve: repeat both continued-pretraining runs on nested subsets of 1k / 5k / 20k UK Biobank participants, to see how much cardiac data is needed before the gain appears.
 - **Month 3: label-efficiency curves.**
   - Use UK Biobank's large set of cardiac measurements (e.g. LV volumes for ~81k participants)
     for label-efficiency curves at scale, for the four 2×2 models and the CineMA and SAM
@@ -59,7 +60,7 @@ M1–M3 = month of the proposed work · ⭐ = stretch goal
 | Factor | ✅ Done so far | 🆕 Proposed |
 |---|---|---|
 | **Backbones** | CineMA (ViT-B)<br>DINOv3 (S, B, L)<br>SAM (B, L, H), classification only | SAM v1 segmentation, one size (M1)<br>Random-init control, CineMA architecture (M1)<br>MAE ViT-B, natural images (M2)<br>DINOv3 ViT-B → UK Biobank (M2)<br>MAE ViT-B → UK Biobank (M2) |
-| **Continued pretraining on cardiac MRI** | None: natural-image models used as released | DINOv3 ViT-B and MAE ViT-B on UK Biobank cine MRI (M2) |
+| **Continued pretraining on cardiac MRI** | None: natural-image models used as released | DINOv3 ViT-B and MAE ViT-B on UK Biobank cine MRI (M2)<br>Data-scaling curve: 1k / 5k / 20k / all participants (M2) |
 | **Backbone adaptation** | Frozen | LoRA ⭐<br>Full fine-tuning ⭐ |
 | **Segmentation heads** | Linear probe<br>Conv decoder<br>UNETR | — |
 | **Classification heads** | Logistic regression<br>Linear | kNN / nearest centroid (M1)<br>Attentive probe over patch tokens (M1) |
