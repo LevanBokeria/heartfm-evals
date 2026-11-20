@@ -44,6 +44,7 @@ This proposal strengthens the existing HeartFM study, although it remains increm
     for label-efficiency curves at scale, for the four 2×2 models and the CineMA and SAM
     references, all frozen.
   - *Stretch goal:* LoRA and full fine-tuning of the same models, as an upper bound on what freezing costs (this might take considerable time).
+  - *Stretch goal:* a short high-resolution (512 px) pretraining stage for the two UK Biobank models, evaluated at 512 and 224 px, to test whether input resolution changes the data-vs-method conclusion.
 
 ## Scope at a glance: done vs proposed
 

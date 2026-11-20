@@ -52,6 +52,9 @@ fine-tuned. This proposal strengthens the existing study, although it remains in
     references, all frozen.
   - *Stretch goal:* LoRA and full fine-tuning of the same models, as an upper bound on what freezing
     costs (this might take considerable time).
+  - *Stretch goal:* a short high-resolution (512 px) pretraining stage for the two UK Biobank
+    models, evaluated at 512 and 224 px, to test whether input resolution changes the
+    data-vs-method conclusion.
 
 ## Scope at a glance: done vs proposed
 
