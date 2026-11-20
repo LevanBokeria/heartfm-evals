@@ -46,6 +46,16 @@ This proposal strengthens the existing HeartFM study, although it remains increm
   - *Stretch goal:* LoRA and full fine-tuning of the same models, as an upper bound on what freezing costs (this might take considerable time).
   - *Stretch goal:* a short high-resolution (512 px) pretraining stage for the two UK Biobank models, evaluated at 512 and 224 px, to test whether input resolution changes the data-vs-method conclusion.
 
+## Estimated GPUh budget:
+
+The core 3-month plan at about 700 GPU-hours (GH200 on Isambard-AI), and up to ~2,250 in a high scenario. The stretch goals would add about 700 (up to ~3,150): LoRA and full fine-tuning, plus a high-resolution pretraining stage. Most of the core range comes from two unknowns: how long continued pretraining on UK Biobank needs to run, and how fast training actually runs on GH200. Both estimates include an allowance for debugging and failed runs.
+
+| GH200-hours | Central | High |
+|---|---|---|
+| Core plan | ~700 | ~2,250 |
+| Stretch goals (LoRA, full fine-tuning, high-resolution stage) | +~700 | +~3,150 |
+| **Core + stretch** | **~1,400** | **~5,400** |
+
 ## Scope at a glance: done vs proposed
 
 M1–M3 = month of the proposed work · ⭐ = stretch goal
