@@ -86,6 +86,22 @@ ukb_ft = tri(
     20, 50, 120
 )  # optional: FT on UKB at 1% & 10% budgets, 6 backbones, 1 seed
 
+# ---------------- Optional add-on: high-resolution stage ----------------
+# Applied only to the two full-data continued-pretraining models.
+# DINOv3: MedDINOv3 / DINOv3 recipe, ~10k iterations, global crops 512-768,
+# local crops 112-336, batch 512. MAE has no published high-res phase: same
+# image count at 512 px is assumed.
+hr_imgs = tri(2.56e6, 5.12e6, 10.24e6)  # 5k / 10k / 20k iterations x batch 512
+hr_cost = tri(4, 6, 9)  # per-image cost vs the 224 px recipe (4-5x tokens + attention)
+hr_pilot_frac = tri(0.3, 0.5, 1.0)  # pilots, in units of one high-res phase
+f512 = tri(5, 6, 8)  # evaluating at 512 px vs 224 px
+HR_DEC = 1  # reduced grid: best decoder (likely UNETR) + classification heads
+
+
+def hr_eval(s, factor):  # one backbone, reduced grid, 3 datasets, 3 seeds
+    return HR_DEC * SEEDS * seg_unit(s, factor) + cls_per_bb[s] * factor
+
+
 contingency = tri(1.15, 1.30, 1.50)
 
 rows = {}
@@ -137,6 +153,22 @@ for s in S:
     st["Stretch contingency"] = sb * (contingency[s] - 1)
     st["TOTAL stretch"] = sb * contingency[s]
     r.update(st)
+    hr = {}
+    hr_dino = hr_imgs[s] / (dino_tp[s] / hr_cost[s]) / dist_eff[s] / 3600
+    hr_mae = hr_imgs[s] / (mae_tp[s] / hr_cost[s]) / dist_eff[s] / 3600
+    hr["High-res: pretraining phase (DINOv3 + MAE, full-data models)"] = (
+        hr_dino + hr_mae
+    )
+    hr["High-res: pilots"] = hr_pilot_frac[s] * (hr_dino + hr_mae)
+    hr["High-res: eval of 2 models at 512 px, reduced grid"] = 2 * hr_eval(s, f512[s])
+    hr["High-res: eval of 2 models at 224 px, reduced grid"] = 2 * hr_eval(s, 1.0)
+    hr["High-res (optional): natural-image DINOv3 + MAE at 512 px"] = 2 * hr_eval(
+        s, f512[s]
+    )
+    hb = sum(hr.values())
+    hr["High-res contingency"] = hb * (contingency[s] - 1)
+    hr["TOTAL high-res add-on"] = hb * contingency[s]
+    r.update(hr)
     rows[s] = r
     rows[s]["_dino"], rows[s]["_mae"] = dino, mae
     rows[s]["_segunit"] = seg_unit(s)
