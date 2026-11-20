@@ -25,7 +25,27 @@ def run_h(imgs, tp, s):
 
 
 pilot_frac = tri(0.3, 0.6, 1.5)  # pilots+HP sweeps, in units of one main run
-scaling_runs_per_arm = 5  # 1k x3 draws, 5k, 20k (all = main run), images-seen fixed
+# Data-scaling curve: nested participant subsets, 3 random draws at 1k.
+# Each subset is trained for the SAME NUMBER OF EPOCHS as the main run, so images
+# seen scale with subset size, with a floor of `scaling_min_iters` iterations
+# (batch 512) so the small subsets still train long enough to move off init.
+main_participants = 75_000  # pre-cut-off cohort, ~CineMA's 74,916
+scaling_subsets = [1_000] * 3 + [5_000, 20_000]
+scaling_runs_per_arm = len(scaling_subsets)
+scaling_batch = 512
+scaling_min_iters = tri(10e3, 15e3, 20e3)
+# One "epoch" = one random phase per (participant, slice position):
+# ~10 SAX slices + 3 LAX views (Petersen et al. 2016, JCMR 18:8, Table 1).
+slices_per_participant = 13
+
+
+def scaling_imgs(main_imgs, s):  # total images seen over all subsets of one arm
+    floor = scaling_min_iters[s] * scaling_batch
+    return sum(
+        max(main_imgs[s] * n / main_participants, floor) for n in scaling_subsets
+    )
+
+
 # ---------------- M1 public-dataset grid ----------------
 train_slices = 8100  # ACDC ~1.5k + M&Ms ~3.1k + M&Ms-2 ~3.5k train slices (ED+ES)
 epochs = tri(60, 80, 100)  # effective epochs incl. early stopping
@@ -121,9 +141,9 @@ for s in S:
     dino, mae = run_h(dino_imgs, dino_tp, s), run_h(mae_imgs, mae_tp, s)
     r["M2 pretrain: main runs (DINOv3 + MAE)"] = dino + mae
     r["M2 pretrain: pilots / HP sweeps"] = pilot_frac[s] * (dino + mae)
-    r["M2 pretrain: data-scaling runs (5 per arm)"] = scaling_runs_per_arm * (
-        dino + mae
-    )
+    sc_dino = run_h({s: scaling_imgs(dino_imgs, s)}, dino_tp, s)
+    sc_mae = run_h({s: scaling_imgs(mae_imgs, s)}, mae_tp, s)
+    r["M2 pretrain: data-scaling runs (5 per arm, fixed epochs)"] = sc_dino + sc_mae
     r["M2 eval: 3 new backbones, full grid"] = 3 * (
         DEC * SEEDS * seg_unit(s) + cls_per_bb[s]
     )
@@ -172,13 +192,30 @@ for s in S:
     rows[s] = r
     rows[s]["_dino"], rows[s]["_mae"] = dino, mae
     rows[s]["_segunit"] = seg_unit(s)
+    # For comparison: the earlier design (every subset = main run's images seen).
+    rows[s]["_scaling_fixed_imgs_seen"] = scaling_runs_per_arm * (dino + mae)
+    epoch = main_participants * slices_per_participant
+    rows[s]["_epochs_main_dino"] = dino_imgs[s] / epoch
+    rows[s]["_epochs_main_mae"] = mae_imgs[s] / epoch
+    rows[s]["_iters_1k_dino_no_floor"] = (
+        dino_imgs[s] * 1_000 / main_participants / scaling_batch
+    )
     rows[s]["_ftunit"] = ft_unit(s)
 
 keys = [k for k in rows["low"] if not k.startswith("_")]
 print(f"{'item':70s} {'low':>8s} {'central':>8s} {'high':>8s}")
 for k in keys:
     print(f"{k:70s} " + " ".join(f"{rows[s][k]:8.0f}" for s in S))
-for k in ["_dino", "_mae", "_segunit", "_ftunit"]:
+for k in [
+    "_dino",
+    "_mae",
+    "_segunit",
+    "_ftunit",
+    "_scaling_fixed_imgs_seen",
+    "_epochs_main_dino",
+    "_epochs_main_mae",
+    "_iters_1k_dino_no_floor",
+]:
     print(k, [round(rows[s][k], 2) for s in S])
 for s in S:
     t = rows[s]["TOTAL core"]

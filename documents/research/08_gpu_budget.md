@@ -22,23 +22,23 @@ Conventions as in [04_followups.md](04_followups.md):*
 | | Low | **Central** | High |
 |---|---|---|---|
 | Month 1: hardening, new heads, nnU-Net, SAM segmentation | 155 | **250** | 510 |
-| Month 2: continued pretraining (2 arms + data-scaling curve) and evaluation | 130 | **520** | 1,905 |
+| Month 2: continued pretraining (2 arms + data-scaling curve) and evaluation | 75 | **235** | 880 |
 | Month 3: UKB label-efficiency curves | 15 | **45** | 115 |
-| Debugging / failed-run contingency (+15 / +30 / +50 %) | 45 | **245** | 1,265 |
-| **Core plan, GH200-hours** | **~350** | **~1,050** | **~3,800** |
-| Core plan, A100-80GB-equivalent hours | ~700 | ~2,100 | ~7,600 |
-| Core plan, Isambard-AI node-hours | ~90 | ~265 | ~950 |
+| Debugging / failed-run contingency (+15 / +30 / +50 %) | 35 | **160** | 755 |
+| **Core plan, GH200-hours** | **~285** | **~700** | **~2,250** |
+| Core plan, A100-80GB-equivalent hours | ~570 | ~1,400 | ~4,500 |
+| Core plan, Isambard-AI node-hours | ~70 | ~175 | ~565 |
 | *Stretch goals (separable): LoRA + full fine-tuning, incl. contingency* | *~190* | *~600* | *~2,600* |
-| *Core + stretch, GH200-hours* | *~540* | *~1,650* | *~6,400* |
+| *Core + stretch, GH200-hours* | *~475* | *~1,300* | *~4,850* |
 | *High-resolution add-on (separable, §2.8), incl. contingency* | *~25* | *~100* | *~565* |
 | *…plus natural-image DINOv3 + MAE also evaluated at 512 px* | *~35* | *~130* | *~665* |
 
 **What drives the total:**
-- **The data-scaling curve is the largest item:** about 335 of 1,050 central hours. Each subset model is trained for the same number of images as the full-data model (see §2.3). Training each subset for a fixed number of epochs instead would cut this item several-fold.
-- **nnU-Net (~170 h central)** is the next largest.
+- **nnU-Net (~170 h central) is the largest single item.**
+- **Continued pretraining as a whole is ~155 h central:** the two main runs (~65 h), pilots and sweeps (~40 h) and the data-scaling curve (~50 h).
+- **The data-scaling curve is cheap because each subset is trained for the same number of epochs as the main run, with a minimum of 15k iterations (central)** (see §2.3). Its evaluation (~60 h central for 10 checkpoints on the full grid) costs more than its training. The earlier design, with every subset trained for the same number of images as the main run, cost ~335 h central.
 - **SAM v1 is expensive to train decoders on.** Its encoder runs at 1024 px, so with online augmentation SAM segmentation costs about 40 h central and 150 h high.
-- **The two main continued-pretraining runs are cheap: ~65 h central for both arms together.**
-- **The range is wide (~10× low to high).** It mostly reflects how long continued pretraining needs to run (15M–100M images for DINOv3, 50M–400M for MAE) and real throughput on GH200. A one-hour throughput benchmark on Isambard-AI in week 1 of Month 2 would narrow it a lot.
+- **The range is wide (~8× low to high).** It mostly reflects how long continued pretraining needs to run (15M–100M images for DINOv3, 50M–400M for MAE), how many pilots it needs, and real throughput on GH200. A one-hour throughput benchmark on Isambard-AI in week 1 of Month 2 would narrow it a lot.
 
 **Comparison with the earlier estimate.** [04_followups.md](04_followups.md) Q2 guessed "a few hundred H100-hours per ViT-B run". The central estimate here is ~45 GH200-h per DINOv3 run and ~25 h per MAE run. The two cardiac anchors that estimate drew on cost far more per image because they process many more tokens:
 - Jacob et al. used ViT-S/8: 784 tokens per 224 px image.
@@ -112,12 +112,14 @@ No published benchmark compares GH200 with H100 directly. The H100 factor is abo
   - It also keeps the Month-3 post-cut-off test cohort unseen by **every** backbone, not only CineMA.
   - Using all ~96k SAX studies would contaminate the Month-3 evaluation.
 - **Views: SAX + LAX 2/3/4-chamber, as 2D frames.** CineMA, ViTa, Jacob et al. and CMRVision all pretrain on SAX plus LAX. ViTa reports that joint views help. M&Ms-2 evaluation includes LAX 4ch.
+- **Frames per participant:** about 10 SAX slices (8 mm slices, 2 mm gap, "approximately ×10") plus 3 LAX cines (2-, 3- and 4-chamber), each with 50 phases (V, [Petersen et al. 2016, Table 1](https://pmc.ncbi.nlm.nih.gov/articles/PMC4736703/), checked by hand). That is about 13 slice positions and ~650 frames per participant, or ~49M frames for 75k participants, consistent with the 50–65M in [04_followups.md](04_followups.md) (D).
 - **Phases: sample from all 50, one random phase per (participant, slice) per pass.**
   - This is CineMA's scheme (`t = rng.integers(50)`).
   - MR-JEPA samples 8 frames, and ViTa uses 5 evenly spaced frames.
   - Restricting pretraining to ED/ES only (Hager) is the exception.
   - If storage is tight, keep every 5th phase plus ED and ES.
-- **Cost.** Neither the view choice nor the phase choice changes the cost: cost scales with images seen, not with dataset size.
+- **Epoch definition used in this budget:** one pass = one random phase per (participant, slice position), so ~13 images per participant and ~975k images per epoch for 75k participants (D). The central main runs are then ~51 epochs (DINOv3, 50M images) and ~154 epochs (MAE, 150M).
+- **Cost.** For the main runs, neither the view choice nor the phase choice changes the cost: cost scales with images seen, not with dataset size. For the data-scaling runs, cost does scale with subset size (§2.3).
 
 ### 2.3 Data-scaling curve
 
@@ -126,9 +128,13 @@ No published benchmark compares GH200 with H100 directly. The H100 factor is abo
   - Ilse et al.: 30k / 50k / 100k / 1M / 3.5M images, nested, 3 draws at the small sizes. They found 30k–100k in-domain images already beat the open weights.
   - Xiao et al.: 75k → 510k chest X-rays; ViT-S saturated at 266k.
   - Neither Jacob et al. nor CMRVision ran a data-scaling study.
-- **Budget rule:** every subset is trained for the **same images seen** as the main run, so data is the only variable. This is conservative.
-  - Ilse et al. instead held epochs fixed, so compute grows with data size.
-  - That would cut this line from ~335 h to roughly 25 h central: the five subsets together hold about 0.4× the main run's data.
+- **Training length rule [I]: the same number of epochs as the main run, with a minimum of 10k / 15k / 20k iterations (low / central / high) at batch 512.**
+  - Fixed epochs follows Ilse et al., who trained every subset size for 15 epochs. Compute then grows with data size, so the curve answers "what does a dataset of this size give, trained in the usual way?" rather than "what does data alone buy at equal compute?". The write-up should say so.
+  - **Why a minimum:** at a fixed epoch count alone, the 1k subset would get only ~1,300 iterations in the central DINOv3 scenario (51 epochs × 13k images), too few to move far from the natural-image starting point. The curve would then confound less data with too little training.
+  - **Why 10k–20k iterations:** this is the order of the short phases used to adapt an already-trained DINOv3 model: the high-resolution phase (§2.8) and a Gram phase if added (§2.1). At the central 15k iterations (7.7M images) the 1k subset makes about 12 passes over each of its ~650k frames, close to Ilse et al.'s 15 epochs.
+  - **Which subsets hit the minimum (central):** DINOv3 at 1k and 5k; MAE at 1k only. The 20k subsets, and MAE at 5k, are above it.
+- **Cost:** ~50 h central for both arms (19 / 50 / 132 h low / central / high).
+  - The earlier rule, the **same images seen** as the main run for every subset, made data the only variable but cost ~335 h central (74 / 336 / 1,157 h). It also meant ~3,800 passes over the 1k subset's slice positions (~77 over every frame), a real overfitting risk.
 
 ### 2.4 Evaluation grid (Months 1–2)
 
@@ -227,14 +233,14 @@ No published benchmark compares GH200 with H100 directly. The H100 factor is abo
 | M1 nnU-Net (2d + 3d_fullres, 5 folds, 3 datasets) | 126 | 170 | 256 |
 | M2 continued pretraining: main runs (DINOv3 + MAE) | 15 | 67 | 231 |
 | M2 pilots and hyperparameter sweeps (0.3 / 0.6 / 1.5 × main runs) | 4 | 40 | 347 |
-| M2 data-scaling runs (5 per arm, fixed images seen) | 74 | 336 | 1,157 |
+| M2 data-scaling runs (5 per arm, fixed epochs, minimum 10k / 15k / 20k iterations) | 19 | 50 | 132 |
 | M2 evaluation: 3 new backbones, full grid | 8 | 18 | 40 |
 | M2 evaluation: 10 scaling checkpoints, full grid | 28 | 60 | 132 |
 | M3 UKB feature extraction (7 backbones, ~420k images each) | 5 | 11 | 29 |
 | M3 UKB label-efficiency heads (3 heads × 9 subsets × 7 backbones) | 7 | 21 | 57 |
 | M3 label generation for post-cut-off cohort (conditional) | 5 | 15 | 30 |
-| Debugging / failed-run contingency (+15 / +30 / +50 %) | 45 | 246 | 1,266 |
-| **Core total** | **347** | **1,066** | **3,797** |
+| Debugging / failed-run contingency (+15 / +30 / +50 %) | 37 | 160 | 753 |
+| **Core total** | **284** | **694** | **2,259** |
 | Stretch: full fine-tuning, 5 ViT-B-class backbones | 34 | 74 | 187 |
 | Stretch: full fine-tuning, SAM at 1024 px | 44 | 145 | 676 |
 | Stretch: LoRA, 5 ViT-B-class backbones | 31 | 67 | 167 |
@@ -250,11 +256,10 @@ No published benchmark compares GH200 with H100 directly. The H100 factor is abo
 
 ## 4. Ways to cut the budget, in order of hours saved [I]
 
-1. **Data-scaling runs at fixed epochs instead of fixed images seen:** −310 h central (−1,070 h high). This changes the question slightly: data size and compute then vary together, as in Ilse et al.
+1. **nnU-Net 3d_fullres only, no 2d / ensemble:** −75 h central.
 2. **Cache SAM features (no augmentation) or run SAM at 512 px:** −35 h central, −145 h high. Stretch fine-tuning saves another −200 h central.
-3. **nnU-Net 3d_fullres only, no 2d / ensemble:** −75 h central.
-4. **Evaluate scaling checkpoints on one decoder (UNETR) plus the classification heads:** −35 h central.
-5. **A one-hour DINOv3 / MAE throughput benchmark on Isambard-AI before committing:** it saves no hours itself, but it collapses most of the low-to-high range for Month 2.
+3. **Evaluate scaling checkpoints on one decoder (UNETR) plus the classification heads:** −35 h central.
+4. **A one-hour DINOv3 / MAE throughput benchmark on Isambard-AI before committing:** it saves no hours itself, but it collapses most of the low-to-high range for Month 2.
 
 ## 5. Not included
 
