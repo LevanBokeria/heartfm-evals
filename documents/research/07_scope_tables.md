@@ -10,7 +10,7 @@ M1–M3 = month of the proposed work · ⭐ = stretch goal
 | Factor | ✅ Done so far | 🆕 Proposed |
 |---|---|---|
 | **Backbones** | CineMA (ViT-B)<br>DINOv3 (S, B, L)<br>SAM (B, L, H), classification only | SAM v1 segmentation, one size (M1)<br>Random-init control, CineMA architecture (M1)<br>MAE ViT-B, natural images (M2)<br>DINOv3 ViT-B → UK Biobank (M2)<br>MAE ViT-B → UK Biobank (M2) |
-| **Continued pretraining on cardiac MRI** | None: natural-image models used as released | DINOv3 ViT-B and MAE ViT-B on UK Biobank cine MRI (M2)<br>Data-scaling curve: 1k / 5k / 20k / all participants (M2) |
+| **Continued pretraining on cardiac MRI** | None: natural-image models used as released | DINOv3 ViT-B and MAE ViT-B on UK Biobank cine MRI (M2)<br>Data-scaling curve: 1k / 5k / 20k / all participants (M2)<br>High-resolution (512 px) stage for both, evaluated at 512 and 224 px ⭐ (M3) |
 | **Backbone adaptation** | Frozen | LoRA ⭐<br>Full fine-tuning ⭐ |
 | **Segmentation heads** | Linear probe<br>Conv decoder<br>UNETR | — |
 | **Classification heads** | Logistic regression<br>Linear | kNN / nearest centroid (M1)<br>Attentive probe over patch tokens (M1) |
